@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls ~/.gradle/wrapper/dists/gradle-8.13-bin/5xuhj0ry160q40clulazy9h7d/)",
+      "Bash(./gradlew compileKotlin)",
+      "Bash(./gradlew clean *)",
+      "Bash(find ~/.gradle -name \"exposed-core-*.jar\" 2>/dev/null | head -3)",
+      "Read(//private/tmp/**)",
+      "Bash(jar tf *)",
+      "Bash(jar xf *)",
+      "Bash(javap -p org/jetbrains/exposed/sql/statements/DeleteStatement.class)",
+      "Bash(javap -p 'org/jetbrains/exposed/sql/statements/DeleteStatement$Companion.class')",
+      "Bash(grep \"Queries\\\\|Table\\\\$\")",
+      "Bash(javap -p org/jetbrains/exposed/sql/QueriesKt.class)",
+      "Bash(javap -p org/jetbrains/exposed/sql/ISqlExpressionBuilder.class)",
+      "Bash(./gradlew run *)",
+      "Bash(curl -s -X POST http://localhost:8080/auth/register -H \"Content-Type: application/json\" -d '{\"name\":\"Тест\",\"email\":\"test@test.com\",\"password\":\"123456\",\"role\":\"owner\"}')",
+      "Bash(curl -s -X GET http://localhost:8080/products)",
+      "Bash(curl -s -X POST http://localhost:8080/auth/login -H \"Content-Type: application/json\" -d '{\"email\":\"test@test.com\",\"password\":\"123456\"}')",
+      "Bash(python3 -m json.tool)",
+      "Bash(curl -s http://localhost:8080/products)",
+      "Bash(xargs kill -9)",
+      "Bash(/usr/libexec/java_home -v 17)",
+      "Bash(/usr/libexec/java_home -v 21)",
+      "Bash(JAVA_HOME=$\\(/usr/libexec/java_home -v 17 || /usr/libexec/java_home -v 21 \\) ./gradlew :app:compileDebugKotlin)",
+      "Bash(python3 -c ' *)",
+      "Bash(xargs cat)",
+      "Bash(xargs ls -la)",
+      "Bash(psql -U anika -c \"\\\\l\")",
+      "Bash(createdb -U anika loafofdream)",
+      "Bash(echo \"PID: $!\")"
+    ]
+  }
+}
