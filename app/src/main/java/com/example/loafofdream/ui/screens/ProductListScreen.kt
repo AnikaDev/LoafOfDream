@@ -259,13 +259,16 @@ private fun ProductCard(product: Product, onClick: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AddProductDialog(
     onDismiss: () -> Unit,
     onConfirm: (String, String, Double, Int, Int, String) -> Unit
 ) {
+    val categories = listOf("Выпечка", "Торты и пирожные", "Горячие напитки", "Холодные напитки", "Прочее")
     var name by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("") }
+    var categoryExpanded by remember { mutableStateOf(false) }
     var price by remember { mutableStateOf("") }
     var qty by remember { mutableStateOf("0") }
     var shelf by remember { mutableStateOf("24") }
@@ -278,8 +281,30 @@ private fun AddProductDialog(
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(value = name, onValueChange = { name = it },
                     label = { Text("Название") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-                OutlinedTextField(value = category, onValueChange = { category = it },
-                    label = { Text("Категория") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                ExposedDropdownMenuBox(
+                    expanded = categoryExpanded,
+                    onExpandedChange = { categoryExpanded = !categoryExpanded }
+                ) {
+                    OutlinedTextField(
+                        value = category,
+                        onValueChange = { category = it },
+                        label = { Text("Категория") },
+                        modifier = Modifier.fillMaxWidth().menuAnchor(),
+                        singleLine = true,
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryExpanded) }
+                    )
+                    ExposedDropdownMenu(
+                        expanded = categoryExpanded,
+                        onDismissRequest = { categoryExpanded = false }
+                    ) {
+                        categories.forEach { cat ->
+                            DropdownMenuItem(
+                                text = { Text(cat) },
+                                onClick = { category = cat; categoryExpanded = false }
+                            )
+                        }
+                    }
+                }
                 OutlinedTextField(value = price, onValueChange = { price = it },
                     label = { Text("Цена (₽)") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
                 OutlinedTextField(value = shelf, onValueChange = { shelf = it },

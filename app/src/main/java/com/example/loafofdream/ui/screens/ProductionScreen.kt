@@ -1,5 +1,7 @@
 package com.example.loafofdream.presentation.screens
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -12,12 +14,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.loafofdream.domain.model.Product
+import com.example.loafofdream.domain.model.ProductionRecord
 import com.example.loafofdream.presentation.viewmodels.ProductListState
 import com.example.loafofdream.presentation.viewmodels.ProductionViewModel
 import com.example.loafofdream.presentation.viewmodels.ProductViewModel
 import com.example.loafofdream.presentation.viewmodels.SelectedDateViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun ProductionScreen(
     selectedDateViewModel: SelectedDateViewModel,
@@ -35,6 +38,7 @@ fun ProductionScreen(
 
     var showDialog by remember { mutableStateOf(false) }
     var selectedProduct by remember { mutableStateOf<Product?>(null) }
+    var recordToDelete by remember { mutableStateOf<ProductionRecord?>(null) }
 
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(result) {
@@ -68,7 +72,15 @@ fun ProductionScreen(
                     contentPadding = PaddingValues(horizontal = 16.dp)
                 ) {
                     items(records) { record ->
-                        Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp)
+                                .combinedClickable(
+                                    onClick = {},
+                                    onLongClick = { recordToDelete = record }
+                                )
+                        ) {
                             Row(
                                 modifier = Modifier.padding(12.dp).fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween
@@ -106,6 +118,23 @@ fun ProductionScreen(
             onConfirm = { productId, quantity ->
                 productionViewModel.addProduction(productId, quantity, dateStr)
                 showDialog = false
+            }
+        )
+    }
+
+    recordToDelete?.let { record ->
+        AlertDialog(
+            onDismissRequest = { recordToDelete = null },
+            title = { Text("Удалить запись?") },
+            text = { Text("${record.productName}: +${record.quantity} шт") },
+            confirmButton = {
+                TextButton(onClick = {
+                    productionViewModel.deleteProduction(record.id, dateStr)
+                    recordToDelete = null
+                }) { Text("Удалить", color = MaterialTheme.colorScheme.error) }
+            },
+            dismissButton = {
+                TextButton(onClick = { recordToDelete = null }) { Text("Отмена") }
             }
         )
     }

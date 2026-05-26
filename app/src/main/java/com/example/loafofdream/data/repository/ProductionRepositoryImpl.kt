@@ -20,4 +20,9 @@ class ProductionRepositoryImpl : IProductionRepository {
             ProductionRecord(it.id, it.productId, it.productName, it.quantity, it.date)
         } ?: emptyList()
     }
+
+    override suspend fun deleteProduction(id: Int) {
+        val response = api.deleteProduction(id)
+        if (!response.isSuccessful) throw Exception("Ошибка удаления записи")
+    }
 }

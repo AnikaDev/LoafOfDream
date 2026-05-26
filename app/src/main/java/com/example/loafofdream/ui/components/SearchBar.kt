@@ -41,6 +41,7 @@ fun SearchBar(
             if (query.isNotEmpty()) {
                 IconButton(onClick = {
                     onQueryChange("")
+                    onSearch("")
                     focusManager.clearFocus()
                 }) {
                     Icon(Icons.Default.Clear, contentDescription = "Очистить")

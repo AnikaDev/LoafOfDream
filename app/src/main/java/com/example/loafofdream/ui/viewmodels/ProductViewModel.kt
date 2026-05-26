@@ -10,6 +10,7 @@ import com.example.loafofdream.domain.usecase.DeleteProductUseCase
 import com.example.loafofdream.domain.usecase.GetProductUseCase
 import com.example.loafofdream.domain.usecase.GetProductsUseCase
 import com.example.loafofdream.domain.usecase.UpdateProductUseCase
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -42,11 +43,13 @@ class ProductViewModel : ViewModel() {
 
     private var lastQuery: String? = null
     private var lastCategory: String? = null
+    private var loadJob: Job? = null
 
     fun loadProducts(query: String? = null, category: String? = null) {
         lastQuery = query
         lastCategory = category
-        viewModelScope.launch {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
             _listState.value = ProductListState.Loading
             try {
                 val list = getProductsUseCase(query, category)

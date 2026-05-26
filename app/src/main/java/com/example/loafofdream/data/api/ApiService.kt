@@ -33,6 +33,9 @@ interface ApiService {
     @POST("production")
     suspend fun addProduction(@Body request: ProductionRequest): Response<MessageResponse>
 
+    @DELETE("production/{id}")
+    suspend fun deleteProduction(@Path("id") id: Int): Response<MessageResponse>
+
     @GET("production")
     suspend fun getProduction(@Query("date") date: String): Response<List<ProductionRecordDto>>
 

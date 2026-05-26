@@ -22,7 +22,7 @@ fun LoginScreen(
     onLoginSuccess: () -> Unit,
     onNavigateToRegister: () -> Unit
 ) {
-    var email by remember { mutableStateOf("") }
+    var name by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val state by viewModel.state.collectAsState()
 
@@ -54,12 +54,19 @@ fun LoginScreen(
         )
         Spacer(modifier = Modifier.height(48.dp))
 
+        Text(
+            text = "Логин",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.align(Alignment.Start)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
         OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text("Email") },
+            value = name,
+            onValueChange = { name = it },
+            label = { Text("Логин") },
             modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             singleLine = true
         )
         Spacer(modifier = Modifier.height(16.dp))
@@ -85,7 +92,7 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
-            onClick = { viewModel.login(email, password) },
+            onClick = { viewModel.login(name, password) },
             modifier = Modifier.fillMaxWidth().height(52.dp),
             enabled = state !is AuthState.Loading
         ) {

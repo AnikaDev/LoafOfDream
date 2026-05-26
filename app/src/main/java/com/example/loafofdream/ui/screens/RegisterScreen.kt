@@ -47,7 +47,7 @@ fun RegisterScreen(
 
         OutlinedTextField(
             value = name, onValueChange = { name = it },
-            label = { Text("Имя") }, modifier = Modifier.fillMaxWidth(), singleLine = true
+            label = { Text("Логин") }, modifier = Modifier.fillMaxWidth(), singleLine = true
         )
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -103,7 +103,7 @@ fun RegisterScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         TextButton(onClick = onNavigateToLogin) {
-            Text("Уже есть аккаунт? Войти")
+            Text("Уже есть аккаунт? Логин")
         }
     }
 }

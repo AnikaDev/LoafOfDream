@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.loafofdream.data.repository.ProductionRepositoryImpl
 import com.example.loafofdream.domain.model.ProductionRecord
 import com.example.loafofdream.domain.usecase.AddProductionUseCase
+import com.example.loafofdream.domain.usecase.DeleteProductionUseCase
 import com.example.loafofdream.domain.usecase.GetProductionUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,6 +17,7 @@ class ProductionViewModel : ViewModel() {
     private val repository = ProductionRepositoryImpl()
     private val addProductionUseCase = AddProductionUseCase(repository)
     private val getProductionUseCase = GetProductionUseCase(repository)
+    private val deleteProductionUseCase = DeleteProductionUseCase(repository)
 
     private val _records = MutableStateFlow<List<ProductionRecord>>(emptyList())
     val records: StateFlow<List<ProductionRecord>> = _records
@@ -44,10 +46,23 @@ class ProductionViewModel : ViewModel() {
             _isLoading.value = true
             try {
                 addProductionUseCase(productId, quantity, date)
-                _result.value = "Производство зафиксировано"
                 loadRecords(date)
             } catch (e: Exception) {
                 _result.value = e.message ?: "Ошибка подключения к серверу"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun deleteProduction(id: Int, date: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                deleteProductionUseCase(id)
+                loadRecords(date)
+            } catch (e: Exception) {
+                _result.value = e.message ?: "Ошибка удаления"
             } finally {
                 _isLoading.value = false
             }

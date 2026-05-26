@@ -9,9 +9,9 @@ import com.example.loafofdream.domain.repository.IAuthRepository
 class AuthRepositoryImpl : IAuthRepository {
     private val api = RetrofitClient.api
 
-    override suspend fun login(email: String, password: String): AuthResult {
-        val response = api.login(LoginRequest(email, password))
-        if (!response.isSuccessful) throw Exception("Неверный email или пароль")
+    override suspend fun login(name: String, password: String): AuthResult {
+        val response = api.login(LoginRequest(name, password))
+        if (!response.isSuccessful) throw Exception("Неверный логин или пароль")
         val body = response.body()!!
         return AuthResult(body.token, body.role, body.name, body.userId)
     }

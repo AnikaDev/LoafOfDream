@@ -45,7 +45,6 @@ class SalesViewModel : ViewModel() {
             _isLoading.value = true
             try {
                 addSalesUseCase(items, date)
-                _result.value = "Продажи зафиксированы"
                 loadSales(date)
             } catch (e: Exception) {
                 _result.value = e.message ?: "Ошибка: проверьте наличие товара"

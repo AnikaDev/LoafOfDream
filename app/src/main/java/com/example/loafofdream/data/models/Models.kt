@@ -2,7 +2,7 @@ package com.example.loafofdream.data.models
 
 import com.google.gson.annotations.SerializedName
 
-data class LoginRequest(val email: String, val password: String)
+data class LoginRequest(val name: String, val password: String)
 
 data class RegisterRequest(val name: String, val email: String, val password: String, val role: String)
 

@@ -34,7 +34,6 @@ fun SalesScreen(
     val isLoading by salesViewModel.isLoading.collectAsState()
     val result by salesViewModel.result.collectAsState()
 
-    val saleItems = remember { mutableStateListOf<SaleItem>() }
     var showAddItemDialog by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -42,7 +41,6 @@ fun SalesScreen(
         result?.let {
             snackbarHostState.showSnackbar(it)
             salesViewModel.clearResult()
-            if (it == "Продажи зафиксированы") saleItems.clear()
         }
     }
 
@@ -64,83 +62,61 @@ fun SalesScreen(
             if (isLoading) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
 
             if (salesRecords.isNotEmpty()) {
-                Text("Продано за $dateStr:", style = MaterialTheme.typography.titleSmall,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
                 val totalRevenue = salesRecords.sumOf { it.quantity * it.priceAtTime }
                 LazyColumn(
-                    modifier = Modifier.weight(0.4f),
-                    contentPadding = PaddingValues(horizontal = 16.dp)
+                    modifier = Modifier.weight(1f),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                 ) {
                     items(salesRecords) { rec ->
                         Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-                            Row(modifier = Modifier.padding(12.dp).fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween) {
+                            Row(
+                                modifier = Modifier.padding(12.dp).fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
                                 Column {
                                     Text(rec.productName, fontWeight = FontWeight.SemiBold)
-                                    Text("${rec.quantity} шт × %.2f ₽".format(rec.priceAtTime),
-                                        style = MaterialTheme.typography.bodySmall)
+                                    Text(
+                                        "${rec.quantity} шт × %.2f ₽".format(rec.priceAtTime),
+                                        style = MaterialTheme.typography.bodySmall
+                                    )
                                 }
-                                Text("%.2f ₽".format(rec.quantity * rec.priceAtTime),
-                                    color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                                Text(
+                                    "%.2f ₽".format(rec.quantity * rec.priceAtTime),
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontWeight = FontWeight.Bold
+                                )
                             }
                         }
                     }
                     item {
                         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-                        Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
                             Text("Итого:", fontWeight = FontWeight.Bold)
-                            Text("%.2f ₽".format(totalRevenue), fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary)
+                            Text(
+                                "%.2f ₽".format(totalRevenue),
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
                         }
                     }
                 }
+            } else {
+                Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    Text(
+                        "Нет продаж за $dateStr",
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                    )
+                }
             }
 
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-            Text("Новая продажа:", style = MaterialTheme.typography.titleSmall,
-                modifier = Modifier.padding(horizontal = 16.dp))
-
-            LazyColumn(
-                modifier = Modifier.weight(1f),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+            Button(
+                onClick = { showAddItemDialog = true },
+                modifier = Modifier.fillMaxWidth().padding(16.dp).height(52.dp)
             ) {
-                items(saleItems, key = { it.productId }) { item ->
-                    val products = (productListState as? ProductListState.Success)?.products ?: emptyList()
-                    val product = products.find { it.id == item.productId }
-                    Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-                        Row(modifier = Modifier.padding(12.dp).fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically) {
-                            Text(product?.name ?: "Продукт ${item.productId}", fontWeight = FontWeight.SemiBold)
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("${item.quantity} шт")
-                                IconButton(onClick = { saleItems.remove(item) }) {
-                                    Icon(Icons.Default.Close, null, tint = MaterialTheme.colorScheme.error)
-                                }
-                            }
-                        }
-                    }
-                }
-                item {
-                    TextButton(
-                        onClick = { showAddItemDialog = true },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Icon(Icons.Default.Add, null)
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Добавить позицию")
-                    }
-                }
-            }
-
-            if (saleItems.isNotEmpty()) {
-                Button(
-                    onClick = { salesViewModel.addSales(saleItems.toList(), dateStr) },
-                    modifier = Modifier.fillMaxWidth().padding(16.dp).height(52.dp)
-                ) {
-                    Text("Зафиксировать продажи")
-                }
+                Text("Добавить позицию")
             }
         }
     }
@@ -148,10 +124,10 @@ fun SalesScreen(
     if (showAddItemDialog) {
         val products = (productListState as? ProductListState.Success)?.products ?: emptyList()
         SaleItemDialog(
-            products = products.filter { p -> saleItems.none { it.productId == p.id } && p.quantity > 0 },
+            products = products.filter { it.quantity > 0 },
             onDismiss = { showAddItemDialog = false },
             onConfirm = { productId, quantity ->
-                saleItems.add(SaleItem(productId, quantity))
+                salesViewModel.addSales(listOf(SaleItem(productId, quantity)), dateStr)
                 showAddItemDialog = false
             }
         )
@@ -207,7 +183,7 @@ private fun SaleItemDialog(
                 val id = selectedProduct?.id ?: return@TextButton
                 val qty = quantity.toIntOrNull() ?: return@TextButton
                 if (qty > 0) onConfirm(id, qty)
-            }) { Text("Добавить") }
+            }) { Text("Добавить товар") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Отмена") } }
     )
