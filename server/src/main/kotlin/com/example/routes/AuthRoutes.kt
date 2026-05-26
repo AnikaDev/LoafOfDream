@@ -42,15 +42,15 @@ fun Route.authRoutes(jwtSecret: String, jwtIssuer: String, jwtAudience: String) 
         post("/login") {
             val req = call.receive<LoginRequest>()
             val user = transaction {
-                Users.select { Users.email eq req.email }.firstOrNull()
+                Users.select { Users.name eq req.name }.firstOrNull()
             }
             if (user == null) {
-                call.respond(HttpStatusCode.Unauthorized, MessageResponse("Неверный email или пароль"))
+                call.respond(HttpStatusCode.Unauthorized, MessageResponse("Неверный логин или пароль"))
                 return@post
             }
             val verified = BCrypt.verifyer().verify(req.password.toCharArray(), user[Users.passwordHash]).verified
             if (!verified) {
-                call.respond(HttpStatusCode.Unauthorized, MessageResponse("Неверный email или пароль"))
+                call.respond(HttpStatusCode.Unauthorized, MessageResponse("Неверный логин или пароль"))
                 return@post
             }
             val token = JWT.create()

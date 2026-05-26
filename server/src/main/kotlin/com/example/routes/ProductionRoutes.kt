@@ -9,6 +9,8 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.minus
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
 
@@ -42,6 +44,29 @@ fun Route.productionRoutes() {
                     }
                 }
                 call.respond(HttpStatusCode.Created, MessageResponse("Производство зафиксировано"))
+            }
+
+            delete("/{id}") {
+                val role = call.principal<JWTPrincipal>()?.getClaim("role", String::class)
+                if (role != "owner") {
+                    call.respond(HttpStatusCode.Forbidden, MessageResponse("Доступ только для владельца"))
+                    return@delete
+                }
+                val recordId = call.parameters["id"]?.toIntOrNull()
+                    ?: return@delete call.respond(HttpStatusCode.BadRequest, MessageResponse("Неверный id"))
+                val deleted = transaction {
+                    val row = ProductionRecords.select { ProductionRecords.id eq recordId }.firstOrNull()
+                        ?: return@transaction false
+                    val qty = row[ProductionRecords.quantity]
+                    val pid = row[ProductionRecords.productId]
+                    ProductionRecords.deleteWhere { ProductionRecords.id eq recordId }
+                    Products.update({ Products.id eq pid }) {
+                        it[quantity] = Products.quantity - qty
+                    }
+                    true
+                }
+                if (deleted) call.respond(HttpStatusCode.OK, MessageResponse("Запись удалена"))
+                else call.respond(HttpStatusCode.NotFound, MessageResponse("Запись не найдена"))
             }
 
             get {
