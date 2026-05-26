@@ -138,7 +138,7 @@ fun ProductDetailScreen(
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
             title = { Text("Удалить продукт?") },
-            text = { Text("Это действие нельзя отменить.") },
+            text = { Text("Будут удалены все связанные записи производства и продаж. Это действие нельзя отменить.") },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.deleteProduct(productId)

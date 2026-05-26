@@ -9,6 +9,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.math.BigDecimal
 import java.time.LocalDateTime
@@ -81,8 +82,15 @@ fun Route.productRoutes() {
                 requireOwner(call) ?: return@delete
                 val pid = call.parameters["id"]?.toIntOrNull()
                     ?: return@delete call.respond(HttpStatusCode.BadRequest, MessageResponse("Неверный id"))
-                transaction { Products.deleteWhere { with(it) { Products.id eq pid } } }
-                call.respond(HttpStatusCode.OK, MessageResponse("Удалено"))
+                val deleted = transaction {
+                    if (Products.select { Products.id eq pid }.firstOrNull() == null) return@transaction false
+                    Sales.deleteWhere { Sales.productId eq pid }
+                    ProductionRecords.deleteWhere { ProductionRecords.productId eq pid }
+                    Products.deleteWhere { Products.id eq pid }
+                    true
+                }
+                if (deleted) call.respond(HttpStatusCode.OK, MessageResponse("Продукт удалён"))
+                else call.respond(HttpStatusCode.NotFound, MessageResponse("Продукт не найден"))
             }
         }
     }
