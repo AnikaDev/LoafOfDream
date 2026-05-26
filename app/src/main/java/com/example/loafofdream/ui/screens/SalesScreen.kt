@@ -1,5 +1,7 @@
 package com.example.loafofdream.presentation.screens
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -18,7 +20,7 @@ import com.example.loafofdream.presentation.viewmodels.ProductViewModel
 import com.example.loafofdream.presentation.viewmodels.SalesViewModel
 import com.example.loafofdream.presentation.viewmodels.SelectedDateViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun SalesScreen(
     selectedDateViewModel: SelectedDateViewModel,
@@ -35,6 +37,7 @@ fun SalesScreen(
     val result by salesViewModel.result.collectAsState()
 
     var showAddItemDialog by remember { mutableStateOf(false) }
+    var recordToDelete by remember { mutableStateOf<com.example.loafofdream.domain.model.SaleRecord?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(result) {
@@ -68,7 +71,15 @@ fun SalesScreen(
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                 ) {
                     items(salesRecords) { rec ->
-                        Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp)
+                                .combinedClickable(
+                                    onClick = {},
+                                    onLongClick = { recordToDelete = rec }
+                                )
+                        ) {
                             Row(
                                 modifier = Modifier.padding(12.dp).fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween
@@ -119,6 +130,23 @@ fun SalesScreen(
                 Text("Добавить позицию")
             }
         }
+    }
+
+    recordToDelete?.let { rec ->
+        AlertDialog(
+            onDismissRequest = { recordToDelete = null },
+            title = { Text("Удалить запись?") },
+            text = { Text("${rec.productName}, ${rec.quantity} шт — %.2f ₽".format(rec.quantity * rec.priceAtTime)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    salesViewModel.deleteSale(rec.id, dateStr)
+                    recordToDelete = null
+                }) { Text("Удалить") }
+            },
+            dismissButton = {
+                TextButton(onClick = { recordToDelete = null }) { Text("Отмена") }
+            }
+        )
     }
 
     if (showAddItemDialog) {

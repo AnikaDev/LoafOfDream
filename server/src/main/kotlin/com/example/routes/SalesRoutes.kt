@@ -8,6 +8,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
 
@@ -50,6 +51,26 @@ fun Route.salesRoutes() {
                     }
                 }
                 call.respond(HttpStatusCode.Created, MessageResponse("Продажи зафиксированы"))
+            }
+
+            delete("/{id}") {
+                val recordId = call.parameters["id"]?.toIntOrNull()
+                    ?: return@delete call.respond(HttpStatusCode.BadRequest, MessageResponse("Неверный id"))
+                val deleted = transaction {
+                    val row = Sales.select { Sales.id eq recordId }.firstOrNull()
+                        ?: return@transaction false
+                    val qty = row[Sales.quantity]
+                    val pid = row[Sales.productId]
+                    Sales.deleteWhere { Sales.id eq recordId }
+                    Products.update({ Products.id eq pid }) {
+                        with(SqlExpressionBuilder) {
+                            it.update(Products.quantity, Products.quantity + qty)
+                        }
+                    }
+                    true
+                }
+                if (deleted) call.respond(HttpStatusCode.OK, MessageResponse("Запись удалена"))
+                else call.respond(HttpStatusCode.NotFound, MessageResponse("Запись не найдена"))
             }
 
             get {

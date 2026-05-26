@@ -45,6 +45,9 @@ interface ApiService {
     @GET("sales")
     suspend fun getSales(@Query("date") date: String): Response<List<SaleRecordDto>>
 
+    @DELETE("sales/{id}")
+    suspend fun deleteSale(@Path("id") id: Int): Response<MessageResponse>
+
     @GET("remainders")
     suspend fun getRemainders(): Response<List<RemainderDto>>
 

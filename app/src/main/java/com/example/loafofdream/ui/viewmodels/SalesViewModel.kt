@@ -54,5 +54,19 @@ class SalesViewModel : ViewModel() {
         }
     }
 
+    fun deleteSale(id: Int, date: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                repository.deleteSale(id)
+                loadSales(date)
+            } catch (e: Exception) {
+                _result.value = e.message ?: "Ошибка удаления записи"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
     fun clearResult() { _result.value = null }
 }

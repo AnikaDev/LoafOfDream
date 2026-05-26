@@ -23,4 +23,9 @@ class SalesRepositoryImpl : ISalesRepository {
             SaleRecord(it.id, it.productId, it.productName, it.quantity, it.priceAtTime, it.date)
         } ?: emptyList()
     }
+
+    override suspend fun deleteSale(id: Int) {
+        val response = api.deleteSale(id)
+        if (!response.isSuccessful) throw Exception("Ошибка удаления записи")
+    }
 }
