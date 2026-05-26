@@ -17,40 +17,40 @@ fun Route.salesRoutes() {
         route("/sales") {
             post {
                 val req = call.receive<SaleRequest>()
-                for (item in req.items) {
-                    val product = transaction {
-                        Products.select { Products.id eq item.productId }.firstOrNull()
-                    }
-                    if (product == null) {
-                        call.respond(HttpStatusCode.NotFound, MessageResponse("Продукт ${item.productId} не найден"))
-                        return@post
-                    }
-                    if (product[Products.quantity] < item.quantity) {
-                        call.respond(
-                            HttpStatusCode.BadRequest,
-                            MessageResponse("Недостаточно ${product[Products.name]} на складе")
-                        )
-                        return@post
-                    }
-                }
-                transaction {
-                    for (item in req.items) {
-                        val product = Products.select { Products.id eq item.productId }.first()
-                        Sales.insert {
-                            it[productId] = item.productId
-                            it[quantity] = item.quantity
-                            it[priceAtTime] = product[Products.price]
-                            it[date] = req.date
-                            it[createdAt] = LocalDateTime.now()
-                        }
-                        Products.update({ Products.id eq item.productId }) {
-                            with(SqlExpressionBuilder) {
-                                it.update(quantity, quantity - item.quantity)
+                var errorStatus: HttpStatusCode? = null
+                var errorMessage: String? = null
+                try {
+                    transaction {
+                        for (item in req.items) {
+                            val product = Products.select { Products.id eq item.productId }.firstOrNull()
+                            if (product == null) {
+                                errorStatus = HttpStatusCode.NotFound
+                                errorMessage = "Продукт ${item.productId} не найден"
+                                throw IllegalArgumentException(errorMessage)
+                            }
+                            if (product[Products.quantity] < item.quantity) {
+                                errorStatus = HttpStatusCode.BadRequest
+                                errorMessage = "Недостаточно ${product[Products.name]} на складе"
+                                throw IllegalStateException(errorMessage)
+                            }
+                            Sales.insert {
+                                it[productId] = item.productId
+                                it[quantity] = item.quantity
+                                it[priceAtTime] = product[Products.price]
+                                it[date] = req.date
+                                it[createdAt] = LocalDateTime.now()
+                            }
+                            Products.update({ Products.id eq item.productId }) {
+                                with(SqlExpressionBuilder) {
+                                    it.update(quantity, quantity - item.quantity)
+                                }
                             }
                         }
                     }
+                    call.respond(HttpStatusCode.Created, MessageResponse("Продажи зафиксированы"))
+                } catch (e: Exception) {
+                    call.respond(errorStatus ?: HttpStatusCode.BadRequest, MessageResponse(errorMessage ?: "Ошибка: проверьте наличие товара"))
                 }
-                call.respond(HttpStatusCode.Created, MessageResponse("Продажи зафиксированы"))
             }
 
             delete("/{id}") {
