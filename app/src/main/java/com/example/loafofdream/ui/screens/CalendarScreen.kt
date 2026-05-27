@@ -3,8 +3,6 @@ package com.example.loafofdream.presentation.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -149,23 +147,6 @@ fun CalendarScreen(
                             StatChip("День", "%.0f ₽".format(s.dayRevenue), modifier = Modifier.weight(1f))
                             StatChip("Месяц", "%.0f ₽".format(s.monthRevenue), modifier = Modifier.weight(1f))
                             StatChip("Год", "%.0f ₽".format(s.yearRevenue), modifier = Modifier.weight(1f))
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        if (s.sales.isEmpty()) {
-                            Text("Продаж за этот день нет",
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                                modifier = Modifier.padding(vertical = 8.dp))
-                        } else {
-                            LazyColumn {
-                                items(s.sales) { sale ->
-                                    Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                                        horizontalArrangement = Arrangement.SpaceBetween) {
-                                        Text(sale.productName)
-                                        Text("${sale.quantity} шт × %.2f ₽".format(sale.priceAtTime),
-                                            color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
-                                    }
-                                }
-                            }
                         }
                     }
                 }
