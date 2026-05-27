@@ -43,16 +43,18 @@ class ProductViewModel : ViewModel() {
 
     private var lastQuery: String? = null
     private var lastCategory: String? = null
+    private var lastDate: String? = null
     private var loadJob: Job? = null
 
-    fun loadProducts(query: String? = null, category: String? = null) {
+    fun loadProducts(query: String? = null, category: String? = null, date: String? = null) {
         lastQuery = query
         lastCategory = category
+        lastDate = date
         loadJob?.cancel()
         loadJob = viewModelScope.launch {
             _listState.value = ProductListState.Loading
             try {
-                val list = getProductsUseCase(query, category)
+                val list = getProductsUseCase(query, category, date)
                 _listState.value = if (list.isEmpty()) ProductListState.Empty
                 else ProductListState.Success(list)
             } catch (e: Exception) {
@@ -61,7 +63,7 @@ class ProductViewModel : ViewModel() {
         }
     }
 
-    fun retryLastLoad() = loadProducts(lastQuery, lastCategory)
+    fun retryLastLoad() = loadProducts(lastQuery, lastCategory, lastDate)
 
     fun loadProduct(id: Int) {
         viewModelScope.launch {
@@ -78,7 +80,7 @@ class ProductViewModel : ViewModel() {
             try {
                 createProductUseCase(request)
                 _actionResult.value = "Продукт создан"
-                loadProducts()
+                loadProducts(lastQuery, lastCategory, lastDate)
             } catch (e: Exception) {
                 _actionResult.value = e.message ?: "Ошибка создания продукта"
             }
@@ -90,7 +92,7 @@ class ProductViewModel : ViewModel() {
             try {
                 updateProductUseCase(id, request)
                 _actionResult.value = "Продукт обновлён"
-                loadProducts()
+                loadProducts(lastQuery, lastCategory, lastDate)
             } catch (e: Exception) {
                 _actionResult.value = e.message ?: "Ошибка обновления продукта"
             }
@@ -102,7 +104,7 @@ class ProductViewModel : ViewModel() {
             try {
                 deleteProductUseCase(id)
                 _actionResult.value = "Продукт удалён"
-                loadProducts()
+                loadProducts(lastQuery, lastCategory, lastDate)
             } catch (e: Exception) {
                 _actionResult.value = e.message ?: "Ошибка удаления"
             }

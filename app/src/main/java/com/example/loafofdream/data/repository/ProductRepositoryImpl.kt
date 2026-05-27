@@ -10,8 +10,8 @@ import com.example.loafofdream.domain.repository.IProductRepository
 class ProductRepositoryImpl : IProductRepository {
     private val api = RetrofitClient.api
 
-    override suspend fun getProducts(query: String?, category: String?): List<Product> {
-        val response = api.getProducts(query, category)
+    override suspend fun getProducts(query: String?, category: String?, date: String?): List<Product> {
+        val response = api.getProducts(query, category, date)
         if (!response.isSuccessful) throw Exception("Ошибка загрузки данных")
         return response.body()?.map { it.toDomain() } ?: emptyList()
     }

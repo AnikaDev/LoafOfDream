@@ -15,7 +15,8 @@ interface ApiService {
     @GET("products")
     suspend fun getProducts(
         @Query("q") query: String? = null,
-        @Query("category") category: String? = null
+        @Query("category") category: String? = null,
+        @Query("date") date: String? = null
     ): Response<List<ProductDto>>
 
     @GET("products/{id}")

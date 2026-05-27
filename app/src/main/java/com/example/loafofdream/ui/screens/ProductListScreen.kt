@@ -22,11 +22,13 @@ import com.example.loafofdream.domain.model.ProductRequest
 import com.example.loafofdream.presentation.components.SearchBar
 import com.example.loafofdream.presentation.viewmodels.ProductListState
 import com.example.loafofdream.presentation.viewmodels.ProductViewModel
+import com.example.loafofdream.presentation.viewmodels.SelectedDateViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductListScreen(
     viewModel: ProductViewModel,
+    selectedDateViewModel: SelectedDateViewModel,
     searchHistoryManager: SearchHistoryManager,
     userRole: String,
     isDarkTheme: Boolean,
@@ -46,8 +48,10 @@ fun ProductListScreen(
     var showMenu by remember { mutableStateOf(false) }
 
     val listState by viewModel.listState.collectAsState()
+    val selectedDate by selectedDateViewModel.selectedDate.collectAsState()
+    val dateStr = selectedDate.toString()
 
-    LaunchedEffect(Unit) { viewModel.loadProducts() }
+    LaunchedEffect(dateStr) { viewModel.loadProducts(date = dateStr) }
 
     Scaffold(
         topBar = {
@@ -116,7 +120,7 @@ fun ProductListScreen(
                             searchHistoryManager.addToHistory(q)
                             history = searchHistoryManager.getHistory()
                         }
-                        viewModel.loadProducts(query = q.ifBlank { null })
+                        viewModel.loadProducts(query = q.ifBlank { null }, date = dateStr)
                         showHistory = false
                     },
                     onFocused = { showHistory = true }
@@ -146,7 +150,7 @@ fun ProductListScreen(
                                     leadingContent = { Icon(Icons.Default.Refresh, null) },
                                     modifier = Modifier.clickable {
                                         searchQuery = item
-                                        viewModel.loadProducts(query = item)
+                                        viewModel.loadProducts(query = item, date = dateStr)
                                         showHistory = false
                                     }
                                 )

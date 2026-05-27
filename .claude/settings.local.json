@@ -34,7 +34,12 @@
       "Bash(sips --help)",
       "Bash(sips -g pixelWidth -g pixelHeight /Users/anika/Desktop/work.png)",
       "Bash(sips -z 432 432 /Users/anika/Desktop/work.png --out /tmp/loaf_icons/ic_launcher_fg.png)",
-      "Bash(cwebp -quiet /tmp/loaf_icons/ic_launcher_fg.png -o /Users/anika/AndroidStudioProjects/LoafOfDream/app/src/main/res/drawable/ic_launcher_icon.webp)"
+      "Bash(cwebp -quiet /tmp/loaf_icons/ic_launcher_fg.png -o /Users/anika/AndroidStudioProjects/LoafOfDream/app/src/main/res/drawable/ic_launcher_icon.webp)",
+      "Bash(./gradlew build *)",
+      "Bash(nohup ./gradlew run > /tmp/server.log 2>&1 &)",
+      "Bash(curl -s http://localhost:8080/products?date=2026-05-14)",
+      "Bash(curl -s \"http://localhost:8080/products?date=2026-05-14\")",
+      "Bash(curl -s \"http://localhost:8080/products?date=2026-05-27\")"
     ]
   }
 }

@@ -66,6 +66,7 @@ fun AppNavHost(
             val productViewModel: ProductViewModel = viewModel()
             ProductListScreen(
                 viewModel = productViewModel,
+                selectedDateViewModel = selectedDateViewModel,
                 searchHistoryManager = searchHistoryManager,
                 userRole = prefs.userRole ?: "",
                 isDarkTheme = isDarkTheme,

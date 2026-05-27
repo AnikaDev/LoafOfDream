@@ -19,6 +19,7 @@ fun Route.productRoutes() {
         get {
             val search = call.request.queryParameters["q"]
             val category = call.request.queryParameters["category"]
+            val date = call.request.queryParameters["date"]
             val products = transaction {
                 var query = Products.selectAll()
                 if (!search.isNullOrBlank()) {
@@ -27,7 +28,24 @@ fun Route.productRoutes() {
                 if (!category.isNullOrBlank()) {
                     query = query.andWhere { Products.category eq category }
                 }
-                query.map { toProductDto(it) }
+                val baseProducts = query.map { toProductDto(it) }
+                if (date != null) {
+                    val productionByProduct = ProductionRecords
+                        .slice(ProductionRecords.productId, ProductionRecords.quantity.sum())
+                        .select { ProductionRecords.date eq date }
+                        .groupBy(ProductionRecords.productId)
+                        .associate { it[ProductionRecords.productId] to (it[ProductionRecords.quantity.sum()] ?: 0) }
+                    val salesByProduct = Sales
+                        .slice(Sales.productId, Sales.quantity.sum())
+                        .select { Sales.date eq date }
+                        .groupBy(Sales.productId)
+                        .associate { it[Sales.productId] to (it[Sales.quantity.sum()] ?: 0) }
+                    baseProducts.map { p ->
+                        p.copy(quantity = (productionByProduct[p.id] ?: 0) - (salesByProduct[p.id] ?: 0))
+                    }
+                } else {
+                    baseProducts
+                }
             }
             call.respond(products)
         }
