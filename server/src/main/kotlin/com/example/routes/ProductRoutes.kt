@@ -22,13 +22,15 @@ fun Route.productRoutes() {
             val date = call.request.queryParameters["date"]
             val products = transaction {
                 var query = Products.selectAll()
-                if (!search.isNullOrBlank()) {
-                    query = query.andWhere { Products.name.lowerCase() like "%${search.lowercase()}%" }
-                }
                 if (!category.isNullOrBlank()) {
                     query = query.andWhere { Products.category eq category }
                 }
                 val baseProducts = query.map { toProductDto(it) }
+                val filteredProducts = if (!search.isNullOrBlank()) {
+                    baseProducts.filter { it.name.contains(search, ignoreCase = true) }
+                } else {
+                    baseProducts
+                }
                 if (date != null) {
                     val productionByProduct = ProductionRecords
                         .slice(ProductionRecords.productId, ProductionRecords.quantity.sum())
@@ -40,11 +42,11 @@ fun Route.productRoutes() {
                         .select { Sales.date eq date }
                         .groupBy(Sales.productId)
                         .associate { it[Sales.productId] to (it[Sales.quantity.sum()] ?: 0) }
-                    baseProducts.map { p ->
+                    filteredProducts.map { p ->
                         p.copy(quantity = (productionByProduct[p.id] ?: 0) - (salesByProduct[p.id] ?: 0))
                     }
                 } else {
-                    baseProducts
+                    filteredProducts
                 }
             }
             call.respond(products)

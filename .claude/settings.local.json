@@ -39,7 +39,18 @@
       "Bash(nohup ./gradlew run > /tmp/server.log 2>&1 &)",
       "Bash(curl -s http://localhost:8080/products?date=2026-05-14)",
       "Bash(curl -s \"http://localhost:8080/products?date=2026-05-14\")",
-      "Bash(curl -s \"http://localhost:8080/products?date=2026-05-27\")"
+      "Bash(curl -s \"http://localhost:8080/products?date=2026-05-27\")",
+      "Bash(curl -s \"http://localhost:8080/products?q=%D0%9A%D1%80%D1%83%D0%B0%D1%81%D1%81%D0%B0%D0%BD&date=2026-05-27\")",
+      "Bash(curl -s \"http://localhost:8080/products?q=%D0%BA%D1%80%D1%83%D0%B0%D1%81%D1%81%D0%B0%D0%BD&date=2026-05-27\")",
+      "Bash(curl -s \"http://localhost:8080/products?q=%D0%BA%D1%80%D1%83%D0%B0%D1%81%D1%81%D0%B0%D0%BD\")",
+      "Bash(curl -s \"http://localhost:8080/products?q=round\")",
+      "Bash(psql -U anika -d loafofdream -c \"SELECT id, name FROM products WHERE LOWER\\(name\\) LIKE '%круассан%';\")",
+      "Bash(psql -U anika -d loafofdream -c \"SELECT id, name FROM products WHERE name ILIKE '%круассан%';\")",
+      "Bash(psql -U anika -d loafofdream -c \"SHOW server_encoding;\")",
+      "Bash(psql -U anika -d loafofdream -c \"SELECT pg_encoding_to_char\\(encoding\\), datcollate, datctype FROM pg_database WHERE datname='loafofdream';\")",
+      "Bash(xargs kill)",
+      "Bash(curl -s \"http://localhost:8080/products?q=%D0%9A%D1%80%D1%83%D0%B0%D1%81%D1%81%D0%B0%D0%BD\")",
+      "Bash(curl -s \"http://localhost:8080/products?q=%D0%9A%D0%A0%D0%A3%D0%90%D0%A1%D0%A1%D0%90%D0%9D\")"
     ]
   }
 }
