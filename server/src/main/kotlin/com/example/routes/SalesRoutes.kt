@@ -20,6 +20,7 @@ fun Route.salesRoutes() {
                 var errorStatus: HttpStatusCode? = null
                 var errorMessage: String? = null
                 try {
+                    val committedThisRequest = mutableMapOf<Int, Int>()
                     transaction {
                         for (item in req.items) {
                             val product = Products.select { Products.id eq item.productId }.firstOrNull()
@@ -28,11 +29,22 @@ fun Route.salesRoutes() {
                                 errorMessage = "Продукт ${item.productId} не найден"
                                 throw IllegalArgumentException(errorMessage)
                             }
-                            if (product[Products.quantity] < item.quantity) {
+                            val produced = ProductionRecords
+                                .slice(ProductionRecords.quantity.sum())
+                                .select { (ProductionRecords.productId eq item.productId) and (ProductionRecords.date eq req.date) }
+                                .single()[ProductionRecords.quantity.sum()] ?: 0
+                            val alreadySold = Sales
+                                .slice(Sales.quantity.sum())
+                                .select { (Sales.productId eq item.productId) and (Sales.date eq req.date) }
+                                .single()[Sales.quantity.sum()] ?: 0
+                            val committedNow = committedThisRequest[item.productId] ?: 0
+                            val available = produced - alreadySold - committedNow
+                            if (available < item.quantity) {
                                 errorStatus = HttpStatusCode.BadRequest
-                                errorMessage = "Недостаточно ${product[Products.name]} на складе"
+                                errorMessage = "Недостаточно ${product[Products.name]} на ${req.date}: произведено $produced, доступно $available шт"
                                 throw IllegalStateException(errorMessage)
                             }
+                            committedThisRequest[item.productId] = committedNow + item.quantity
                             Sales.insert {
                                 it[productId] = item.productId
                                 it[quantity] = item.quantity

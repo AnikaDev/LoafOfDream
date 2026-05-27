@@ -113,10 +113,12 @@ fun AppNavHost(
         composable(Routes.SALES) {
             val productViewModel: ProductViewModel = viewModel()
             val salesViewModel: SalesViewModel = viewModel()
+            val productionViewModel: ProductionViewModel = viewModel()
             SalesScreen(
                 selectedDateViewModel = selectedDateViewModel,
                 productViewModel = productViewModel,
                 salesViewModel = salesViewModel,
+                productionViewModel = productionViewModel,
                 onBack = { navController.popBackStack() }
             )
         }

@@ -19,6 +19,7 @@ import com.example.loafofdream.domain.model.Product
 import com.example.loafofdream.domain.model.SaleItem
 import com.example.loafofdream.presentation.viewmodels.ProductListState
 import com.example.loafofdream.presentation.viewmodels.ProductViewModel
+import com.example.loafofdream.presentation.viewmodels.ProductionViewModel
 import com.example.loafofdream.presentation.viewmodels.SalesViewModel
 import com.example.loafofdream.presentation.viewmodels.SelectedDateViewModel
 
@@ -28,6 +29,7 @@ fun SalesScreen(
     selectedDateViewModel: SelectedDateViewModel,
     productViewModel: ProductViewModel,
     salesViewModel: SalesViewModel,
+    productionViewModel: ProductionViewModel,
     onBack: () -> Unit
 ) {
     val date by selectedDateViewModel.selectedDate.collectAsState()
@@ -35,6 +37,7 @@ fun SalesScreen(
 
     val productListState by productViewModel.listState.collectAsState()
     val salesRecords by salesViewModel.records.collectAsState()
+    val productionRecords by productionViewModel.records.collectAsState()
     val isLoading by salesViewModel.isLoading.collectAsState()
     val result by salesViewModel.result.collectAsState()
 
@@ -52,6 +55,14 @@ fun SalesScreen(
     LaunchedEffect(dateStr) {
         productViewModel.loadProducts()
         salesViewModel.loadSales(dateStr)
+        productionViewModel.loadRecords(dateStr)
+    }
+
+    val availableByProduct: Map<Int, Int> = remember(productionRecords, salesRecords) {
+        val map = mutableMapOf<Int, Int>()
+        productionRecords.forEach { rec -> map[rec.productId] = (map[rec.productId] ?: 0) + rec.quantity }
+        salesRecords.forEach { rec -> map[rec.productId] = (map[rec.productId] ?: 0) - rec.quantity }
+        map.filter { it.value > 0 }
     }
 
     Scaffold(
@@ -151,9 +162,12 @@ fun SalesScreen(
     }
 
     if (showAddItemDialog) {
-        val products = (productListState as? ProductListState.Success)?.products ?: emptyList()
+        val allProducts = (productListState as? ProductListState.Success)?.products ?: emptyList()
+        val availableProducts = allProducts
+            .filter { (availableByProduct[it.id] ?: 0) > 0 }
+            .map { it.copy(quantity = availableByProduct[it.id] ?: 0) }
         SaleItemDialog(
-            products = products.filter { it.quantity > 0 },
+            products = availableProducts,
             onDismiss = { showAddItemDialog = false },
             onConfirm = { productId, quantity ->
                 salesViewModel.addSales(listOf(SaleItem(productId, quantity)), dateStr)
@@ -179,7 +193,7 @@ private fun SaleItemDialog(
         title = { Text("Добавить позицию") },
         text = {
             if (products.isEmpty()) {
-                Text("Нет доступных товаров в наличии")
+                Text("Нет доступных товаров на эту дату")
             } else {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
