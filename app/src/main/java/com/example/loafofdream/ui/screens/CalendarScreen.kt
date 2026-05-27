@@ -1,7 +1,8 @@
 package com.example.loafofdream.presentation.screens
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -29,7 +30,7 @@ private val ruMonths = listOf(
     "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun CalendarScreen(
     viewModel: CalendarViewModel,
@@ -37,10 +38,17 @@ fun CalendarScreen(
     onBack: () -> Unit
 ) {
     val calendarState by viewModel.state.collectAsState()
-    val selectedDate by selectedDateViewModel.selectedDate.collectAsState()
-    var displayMonth by remember { mutableStateOf(selectedDate.withDayOfMonth(1)) }
+    val globalDate by selectedDateViewModel.selectedDate.collectAsState()
 
-    LaunchedEffect(selectedDate) { viewModel.loadStats(selectedDate) }
+    var localDate by remember { mutableStateOf(globalDate) }
+    var displayMonth by remember { mutableStateOf(globalDate.withDayOfMonth(1)) }
+    var dialogDate by remember { mutableStateOf<LocalDate?>(null) }
+
+    LaunchedEffect(globalDate) {
+        localDate = globalDate
+    }
+
+    LaunchedEffect(localDate) { viewModel.loadStats(localDate) }
 
     Scaffold(
         topBar = {
@@ -91,7 +99,8 @@ fun CalendarScreen(
                             Box(modifier = Modifier.weight(1f).aspectRatio(1f))
                         } else {
                             val date = displayMonth.withDayOfMonth(dayNum)
-                            val isSelected = date == selectedDate
+                            val isLocalSelected = date == localDate
+                            val isGlobalSelected = date == globalDate && date != localDate
                             val isToday = date == LocalDate.now()
                             Box(
                                 modifier = Modifier
@@ -101,26 +110,36 @@ fun CalendarScreen(
                                     .clip(CircleShape)
                                     .background(
                                         when {
-                                            isSelected -> MaterialTheme.colorScheme.primary
+                                            isLocalSelected -> MaterialTheme.colorScheme.primary
                                             isToday -> MaterialTheme.colorScheme.primaryContainer
                                             else -> androidx.compose.ui.graphics.Color.Transparent
                                         }
                                     )
-                                    .clickable {
-                                        selectedDateViewModel.setDate(date)
-                                    },
+                                    .combinedClickable(
+                                        onClick = { localDate = date },
+                                        onLongClick = { dialogDate = date }
+                                    ),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text(
-                                    "$dayNum",
-                                    color = when {
-                                        isSelected -> MaterialTheme.colorScheme.onPrimary
-                                        isToday -> MaterialTheme.colorScheme.onPrimaryContainer
-                                        else -> MaterialTheme.colorScheme.onSurface
-                                    },
-                                    fontSize = 14.sp,
-                                    fontWeight = if (isSelected || isToday) FontWeight.Bold else FontWeight.Normal
-                                )
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text(
+                                        "$dayNum",
+                                        color = when {
+                                            isLocalSelected -> MaterialTheme.colorScheme.onPrimary
+                                            isToday -> MaterialTheme.colorScheme.onPrimaryContainer
+                                            else -> MaterialTheme.colorScheme.onSurface
+                                        },
+                                        fontSize = 14.sp,
+                                        fontWeight = if (isLocalSelected || isToday) FontWeight.Bold else FontWeight.Normal
+                                    )
+                                    if (isGlobalSelected) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(4.dp)
+                                                .background(MaterialTheme.colorScheme.primary, CircleShape)
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
@@ -139,7 +158,7 @@ fun CalendarScreen(
                     val s = state.stats
                     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                         Text(
-                            selectedDate.format(DateTimeFormatter.ofPattern("d MMMM yyyy", Locale("ru"))),
+                            localDate.format(DateTimeFormatter.ofPattern("d MMMM yyyy", Locale("ru"))),
                             fontWeight = FontWeight.Bold, fontSize = 16.sp
                         )
                         Spacer(modifier = Modifier.height(8.dp))
@@ -157,6 +176,24 @@ fun CalendarScreen(
                 else -> Unit
             }
         }
+    }
+
+    dialogDate?.let { date ->
+        AlertDialog(
+            onDismissRequest = { dialogDate = null },
+            title = { Text("Выбрать дату?") },
+            text = { Text(date.format(DateTimeFormatter.ofPattern("d MMMM yyyy", Locale("ru")))) },
+            confirmButton = {
+                TextButton(onClick = {
+                    selectedDateViewModel.setDate(date)
+                    localDate = date
+                    dialogDate = null
+                }) { Text("Да") }
+            },
+            dismissButton = {
+                TextButton(onClick = { dialogDate = null }) { Text("Нет") }
+            }
+        )
     }
 }
 
