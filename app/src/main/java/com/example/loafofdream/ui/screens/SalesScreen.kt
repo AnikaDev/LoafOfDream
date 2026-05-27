@@ -1,5 +1,6 @@
 package com.example.loafofdream.presentation.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
@@ -11,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.loafofdream.domain.model.Product
@@ -38,11 +40,11 @@ fun SalesScreen(
 
     var showAddItemDialog by remember { mutableStateOf(false) }
     var recordToDelete by remember { mutableStateOf<com.example.loafofdream.domain.model.SaleRecord?>(null) }
-    val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
 
     LaunchedEffect(result) {
         result?.let {
-            snackbarHostState.showSnackbar(it)
+            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
             salesViewModel.clearResult()
         }
     }
@@ -59,7 +61,6 @@ fun SalesScreen(
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, null) } }
             )
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
         Column(modifier = Modifier.padding(padding).fillMaxSize()) {
             if (isLoading) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())

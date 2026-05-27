@@ -1,5 +1,6 @@
 package com.example.loafofdream.presentation.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -10,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -29,17 +31,14 @@ fun ProductDetailScreen(
     val actionResult by viewModel.actionResult.collectAsState()
     var showEditDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     LaunchedEffect(productId) { viewModel.loadProduct(productId) }
 
     LaunchedEffect(actionResult) {
-        if (actionResult == "Продукт удалён") onBack()
-    }
-
-    val snackbarHostState = remember { SnackbarHostState() }
-    LaunchedEffect(actionResult) {
         actionResult?.let {
-            snackbarHostState.showSnackbar(it)
+            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            if (it == "Продукт удалён") onBack()
             viewModel.clearActionResult()
         }
     }
@@ -63,7 +62,6 @@ fun ProductDetailScreen(
                 }
             )
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
         product?.let { p ->
             Column(
