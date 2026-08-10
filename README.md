@@ -1,4 +1,5 @@
 Uml диаграммы и макет приложения
+
 <img width="468" height="370" alt="image" src="https://github.com/user-attachments/assets/f78d7495-0aa1-45ef-aff1-a2e9e7e5cbd4" />
 <img width="479" height="582" alt="image" src="https://github.com/user-attachments/assets/44b5c857-1535-40a6-9eab-2eef867393c1" />
 <img width="482" height="355" alt="image" src="https://github.com/user-attachments/assets/936c45a5-3f73-4ad4-953f-5f4177084772" />
